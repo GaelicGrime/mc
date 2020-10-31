@@ -135,7 +135,7 @@ static menu_t *left_menu, *right_menu;
 static void
 stop_dialogs (void)
 {
-    dlg_stop (midnight_dlg);
+    dlg_stop (filemanager);
 
     if (top_dlg != NULL)
         dlg_stop (DIALOG (top_dlg->data));
@@ -907,14 +907,14 @@ done_mc (void)
 static void
 create_file_manager (void)
 {
-    Widget *w = WIDGET (midnight_dlg);
-    WGroup *g = GROUP (midnight_dlg);
+    Widget *w = WIDGET (filemanager);
+    WGroup *g = GROUP (filemanager);
 
     w->keymap = filemanager_map;
     w->ext_keymap = filemanager_x_map;
 
-    midnight_dlg->get_shortcut = midnight_get_shortcut;
-    midnight_dlg->get_title = midnight_get_title;
+    filemanager->get_shortcut = midnight_get_shortcut;
+    filemanager->get_title = midnight_get_title;
     /* allow rebind tab */
     widget_want_tab (w, TRUE);
 
@@ -1009,7 +1009,7 @@ show_editor_viewer_history (void)
     char *s;
     int act;
 
-    s = show_file_history (WIDGET (midnight_dlg), &act);
+    s = show_file_history (WIDGET (filemanager), &act);
     if (s != NULL)
     {
         vfs_path_t *s_vpath;
@@ -1366,7 +1366,7 @@ midnight_execute_cmd (Widget * sender, long command)
     case CK_Select:
     case CK_Unselect:
     case CK_SelectInvert:
-        res = send_message (current_panel, midnight_dlg, MSG_ACTION, command, NULL);
+        res = send_message (current_panel, filemanager, MSG_ACTION, command, NULL);
         break;
     case CK_Shell:
         toggle_subshell ();
@@ -1378,7 +1378,7 @@ midnight_execute_cmd (Widget * sender, long command)
         sort_cmd ();
         break;
     case CK_ExtendedKeyMap:
-        WIDGET (midnight_dlg)->ext_mode = TRUE;
+        WIDGET (filemanager)->ext_mode = TRUE;
         break;
     case CK_Suspend:
         mc_event_raise (MCEVENT_GROUP_CORE, "suspend", NULL);
@@ -1558,14 +1558,13 @@ midnight_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
             {
                 /* Special treatement, since the input line will eat them */
                 if (parm == '+')
-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_Select, NULL);
+                    return send_message (current_panel, filemanager, MSG_ACTION, CK_Select, NULL);
 
                 if (parm == '\\' || parm == '-')
-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_Unselect,
-                                         NULL);
+                    return send_message (current_panel, filemanager, MSG_ACTION, CK_Unselect, NULL);
 
                 if (parm == '*')
-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_SelectInvert,
+                    return send_message (current_panel, filemanager, MSG_ACTION, CK_SelectInvert,
                                          NULL);
             }
             else if (!command_prompt || input_is_empty (cmdline))
@@ -1574,14 +1573,13 @@ midnight_callback (Widget * w, Widget * sender, widget_msg_t msg, int parm, void
                  * first char on input line
                  */
                 if (parm == '+')
-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_Select, NULL);
+                    return send_message (current_panel, filemanager, MSG_ACTION, CK_Select, NULL);
 
                 if (parm == '\\' || parm == '-')
-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_Unselect,
-                                         NULL);
+                    return send_message (current_panel, filemanager, MSG_ACTION, CK_Unselect, NULL);
 
                 if (parm == '*')
-                    return send_message (current_panel, midnight_dlg, MSG_ACTION, CK_SelectInvert,
+                    return send_message (current_panel, filemanager, MSG_ACTION, CK_SelectInvert,
                                          NULL);
             }
         }
@@ -1645,7 +1643,7 @@ update_menu (void)
 void
 midnight_set_buttonbar (WButtonBar * b)
 {
-    Widget *w = WIDGET (midnight_dlg);
+    Widget *w = WIDGET (filemanager);
 
     buttonbar_set_label (b, 1, Q_ ("ButtonBar|Help"), w->keymap, NULL);
     buttonbar_set_label (b, 2, Q_ ("ButtonBar|Menu"), w->keymap, NULL);
@@ -1776,7 +1774,7 @@ WPanel *
 change_panel (void)
 {
     input_complete_free (cmdline);
-    group_select_next_widget (GROUP (midnight_dlg));
+    group_select_next_widget (GROUP (filemanager));
     return current_panel;
 }
 
@@ -1817,8 +1815,8 @@ do_nc (void)
     edit_stack_init ();
 #endif
 
-    midnight_dlg = dlg_create (FALSE, 0, 0, 1, 1, WPOS_FULLSCREEN, FALSE, dialog_colors,
-                               midnight_callback, NULL, "[main]", NULL);
+    filemanager = dlg_create (FALSE, 0, 0, 1, 1, WPOS_FULLSCREEN, FALSE, dialog_colors,
+                              midnight_callback, NULL, "[main]", NULL);
 
     /* Check if we were invoked as an editor or file viewer */
     if (mc_global.mc_run_mode != MC_RUN_FULL)
@@ -1829,13 +1827,13 @@ do_nc (void)
     else
     {
         /* We only need the first idle event to show user menu after start */
-        widget_idle (WIDGET (midnight_dlg), TRUE);
+        widget_idle (WIDGET (filemanager), TRUE);
 
         setup_mc ();
         mc_filehighlight = mc_fhl_new (TRUE);
 
         create_file_manager ();
-        (void) dlg_run (midnight_dlg);
+        (void) dlg_run (filemanager);
 
         mc_fhl_free (&mc_filehighlight);
 
@@ -1855,7 +1853,7 @@ do_nc (void)
     mc_global.midnight_shutdown = TRUE;
     dialog_switch_shutdown ();
     done_mc ();
-    dlg_destroy (midnight_dlg);
+    dlg_destroy (filemanager);
     current_panel = NULL;
 
 #ifdef USE_INTERNAL_EDIT
