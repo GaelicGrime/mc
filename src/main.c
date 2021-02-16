@@ -242,6 +242,27 @@ check_sid (void)
 }
 
 /* --------------------------------------------------------------------------------------------- */
+
+static void
+set_sid_env_var (void)
+{
+    pid_t mc_sid;
+
+    /* Get a fresh terminal session */
+    setsid ();
+
+    /* Set MC_SID to prevent running one mc from another */
+    mc_sid = getsid (0);
+    if (mc_sid != -1)
+    {
+        char sid_str[BUF_SMALL];
+
+        g_snprintf (sid_str, sizeof (sid_str), "MC_SID=%ld", (long) mc_sid);
+        putenv (g_strdup (sid_str));
+    }
+}
+
+/* --------------------------------------------------------------------------------------------- */
 /*** public functions ****************************************************************************/
 /* --------------------------------------------------------------------------------------------- */
 
@@ -259,6 +280,8 @@ main (int argc, char *argv[])
 #endif
     (void) bindtextdomain (PACKAGE, LOCALEDIR);
     (void) textdomain (PACKAGE);
+
+    set_sid_env_var ();
 
     /* do this before args parsing */
     str_init_strings (NULL);

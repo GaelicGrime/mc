@@ -272,10 +272,8 @@ static void
 init_subshell_child (const char *pty_name)
 {
     char *init_file = NULL;
-    pid_t mc_sid;
 
     (void) pty_name;
-    setsid ();                  /* Get a fresh terminal session */
 
     /* Make sure that it has become our controlling terminal */
 
@@ -307,16 +305,6 @@ init_subshell_child (const char *pty_name)
 
         ret = chdir (mc_config_get_home_dir ());        /* FIXME? What about when we re-run the subshell? */
         (void) ret;
-    }
-
-    /* Set MC_SID to prevent running one mc from another */
-    mc_sid = getsid (0);
-    if (mc_sid != -1)
-    {
-        char sid_str[BUF_SMALL];
-
-        g_snprintf (sid_str, sizeof (sid_str), "MC_SID=%ld", (long) mc_sid);
-        putenv (g_strdup (sid_str));
     }
 
     switch (mc_global.shell->type)
